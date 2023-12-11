@@ -1,0 +1,23 @@
+{
+  "name": "skillforge-connect",
+  "version": "1.0.0",
+  "description": "Backend - API Endpoints",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LevittC17/skillforge-connect.git"
+  },
+  "author": "Stewart, Abdulazeeza, Henriette and David",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/LevittC17/skillforge-connect/issues"
+  },
+  "homepage": "https://github.com/LevittC17/skillforge-connect#readme",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
+  }
+}
