@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import Joi from 'joi';
 import User from '../models/user.model.js';
+import { errorHandler } from '../utils/errorHandler.js';
 
 export const registerUser = async (req, res, next) => {
     try {
@@ -59,7 +60,9 @@ export const loginUser = async (req, res, next) => {
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (!isPasswordValid) {
-            return res.status(401).json({ message: 'Invalid credentials'});
+            const err = new Error('Invalid credentials');
+            err.statusCode = 401;
+            return next(err);
         }
 
         const token = jwt.sign({ userId: user._id}, process.env.JWT_SECRET);
