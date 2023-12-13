@@ -62,12 +62,17 @@ export const loginUser = async (req, res, next) => {
             return res.status(401).json({ message: 'Invalid credentials'});
         }
 
-        const token = jwt.sign({ userId: user._id}, process.env.JWT_SECRET, { expiresIn: '1d' });
+        const token = jwt.sign({ userId: user._id}, process.env.JWT_SECRET);
+        const { password: userPassword, ...rest } = user._doc;
 
-        res.status(200).json({ token});
+        // Set the access token as a cookie
+        res.cookie('access_token', token, { httpOnly: true, maxAge: Number(process.env.JWT_EXPIRATION), secure: process.env.NODE_ENV === 'deployment' })
+           .status(200)
+           .json({ user: rest, token });
     } catch (error) {
         next(error);
     }
 };
+
 
 export default { registerUser, loginUser };
