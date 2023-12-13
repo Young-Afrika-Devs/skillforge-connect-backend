@@ -35,4 +35,39 @@ export const registerUser = async (req, res, next) => {
     }
 };
 
-export default registerUser;
+export const loginUser = async (req, res, next) => {
+    try {
+        const schema = Joi.object({
+            email: Joi.string().email().required(),
+            password: Joi.string().required()
+        });
+
+        const { error, value } = schema.validate(req.body);
+
+        if (error) {
+            throw new Error(error.details[0].message);
+        }
+
+        const { email, password } = value;
+
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(401).json({ message: 'Invalid email or password' });
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: 'Invalid credentials'});
+        }
+
+        const token = jwt.sign({ userId: user._id}, process.env.JWT_SECRET, { expiresIn: '1d' });
+
+        res.status(200).json({ token});
+    } catch (error) {
+        next(error);
+    }
+};
+
+export default { registerUser, loginUser };
