@@ -74,5 +74,53 @@ export const loginUser = async (req, res, next) => {
     }
 };
 
+export const requestPasswordReset = async(req, res, next) => {
+    try {
+        const { email } = req.body;
+        const user = await User.findOne({ email });
 
-export default { registerUser, loginUser };
+        if (!user) {
+            return res.status(401).json({ message: 'User does not exist'});
+        }
+
+        const resetToken = jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '1h'});
+
+        // Create a password reset link that the user can click on
+        const resetLink = `http://localhost:3000/password-reset/${resetToken}`;
+
+        // Send resetToken to user's email.
+        // You can use a mailer service like SendGrid, Mailgun, etc.
+        // For the purpose of this example, we'll assume you have a function sendEmail() that does this.
+        await sendEmail(resetToken, email);
+
+        res.status(200).json({ message: 'Password reset link has been sent to your email'});
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const resetPassword = async (req, res, next) => {
+    try {
+        const { resetToken, password } = req.body;
+
+        // Verify that the reset token is valid
+        const payload = jwt.verify(resetToken, process.env.JWT_SECRET);
+
+        const user = await User.findById(payload.userId);
+
+        if (!user) {
+            return res.status(404).json({ message: 'Invalid or expired password reset token'});
+        }
+
+        // Hash the new password and save it to the user
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+        await user.save();
+
+        res.status(200).json({ message: 'Password reset successful'});
+    } catch (error) {
+        next(error);
+    }
+}
+
+export default { registerUser, loginUser, requestPasswordReset, resetPassword };
