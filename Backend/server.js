@@ -1,35 +1,30 @@
-// Backend/server.js
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import cookieParser from 'cookie-parser';
+import { errorHandler } from './utils/errorHandler.js';
 import router from './routes/index.js';
+
+const app = express();
+const PORT = 3000;
 
 dotenv.config();
 
-const app = express();
-const port = process.env.PORT || 5000;
-
-app.use(express.json());
-app.use(cookieParser());
-
 // Connect to MongoDB
-const MONGODB_URI = process.env.MONGODB_URI;
-mongoose.connect(MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
+mongoose.connect(process.env.MONGODB_URI)
+    .then(() => console.log('Connected to MongoDB'))
+    .catch(error => console.error(error.message));
+
+// Middleware
+app.use(express.json());
+
+// API Routes
+app.use('/api/user', router);
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
 
-const db = mongoose.connection;
-
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-db.once('open', () => {
-  console.log('Connected to MongoDB Atlas');
-});
-
-app.use('/', router);
-
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
-
+// Error handler
+app.use((err, req, res, next) => {
+    res.status(500).json({ message: err.message });
+})
