@@ -60,7 +60,9 @@ Provide information on configuration files, environment variables, or any setup 
 
 ## Usage:
 **API Endpoints:**
-List and describe each API endpoint, including the HTTP methods, parameters, and expected responses.
+List and description of  each API endpoint, including the HTTP methods, parameters, and expected responses.
+
+Find in file: [API_DOCUMENTATION.md](/API_DOCUMENTANTION.md)
 
 **Examples of Requests and Responses:**
 Provide examples of how to make requests to your API along with expected responses.
