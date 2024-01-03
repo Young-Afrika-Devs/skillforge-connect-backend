@@ -24,6 +24,11 @@ const userSchema = new mongoose.Schema({
         },
         message: () => `Please enter a valid email!`
     },
+    role: {
+        type: String,
+        enum: ['user', 'admin'],
+        default: 'user'
+    },
     password: {
         type: String,
         required: true,
