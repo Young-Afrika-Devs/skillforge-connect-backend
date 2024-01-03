@@ -1,11 +1,17 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import cors from 'cors';
 import { errorHandler } from './utils/errorHandler.js';
 import router from './routes/index.js';
 
 const app = express();
 const PORT = 3000;
+
+// CORS
+app.use(cors({
+    origin: 'http://localhost:5173'
+}));
 
 dotenv.config();
 
