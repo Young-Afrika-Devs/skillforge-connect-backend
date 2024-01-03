@@ -16,14 +16,14 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/LevittC17/skillforge-connect.git"
+        "url": "https://github.com/Young-Afrika-Devs/skillforge-connect-backend"
     },
     "author": "Stewart Nyaruwata and David Karanja",
     "license": "ISC",
     "bugs": {
-        "url": "https://github.com/LevittC17/skillforge-connect/issues"
+        "url": "https://github.com/Young-Afrika-Devs/skillforge-connect-backend/issues"
     },
-    "homepage": "https://github.com/LevittC17/skillforge-connect#readme",
+    "homepage": "https://github.com/Young-Afrika-Devs/skillforge-connect-backend#readme",
     "dependencies": {
         "bcrypt": "^5.1.1",
         "bull": "^4.11.5",
