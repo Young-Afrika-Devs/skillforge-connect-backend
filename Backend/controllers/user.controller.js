@@ -65,7 +65,8 @@ export const loginUser = async (req, res, next) => {
             return next(err);
         }
 
-        const token = jwt.sign({ userId: user._id}, process.env.JWT_SECRET);
+        // Include role in the JWT payload
+        const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET);
         const { password: userPassword, ...rest } = user._doc;
 
         // Set the access token as a cookie
@@ -86,7 +87,7 @@ export const requestPasswordReset = async(req, res, next) => {
             return res.status(401).json({ message: 'User does not exist'});
         }
 
-        const resetToken = jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '1h'});
+        const resetToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h'});
 
         // Create a password reset link that the user can click on
         const resetLink = `http://localhost:3000/password-reset/${resetToken}`;
@@ -127,3 +128,4 @@ export const resetPassword = async (req, res, next) => {
 }
 
 export default { registerUser, loginUser, requestPasswordReset, resetPassword };
+
