@@ -23,7 +23,14 @@ const userSchema = new mongoose.Schema({
             return regex.test(value);
         },
         message: () => `Please enter a valid email!`
+        
     },
+    role: {
+        type: String,
+        enum: ['user', 'admin'],
+        default: 'user'
+    },
+    
     password: {
         type: String,
         required: true,
@@ -33,6 +40,7 @@ const userSchema = new mongoose.Schema({
             message: () => `Password must be at least 8 characters long`
         }
     },
+    
 }, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);
