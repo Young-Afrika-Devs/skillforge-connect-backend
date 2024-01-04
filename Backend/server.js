@@ -9,9 +9,7 @@ const app = express();
 const PORT = 3000;
 
 // CORS
-app.use(cors({
-    origin: 'http://localhost:5173'
-}));
+app.use(cors());
 
 dotenv.config();
 
