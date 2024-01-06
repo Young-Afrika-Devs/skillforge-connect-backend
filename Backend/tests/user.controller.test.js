@@ -1,98 +1,165 @@
-import { loginUser } from '../controllers/user.controller.js';
-import User from '../models/user.model.js';
+import request from 'supertest';
+import mongoose from 'mongoose';
+import server from '../server.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import sinon from 'sinon';
-import sinonChai from 'sinon-chai';
-import { expect } from 'chai';
-import chai from 'chai';
+import User from '../models/user.model.js';
+import { loginUser } from '../controllers/user.controller.js';
 
-chai.use(sinonChai);
+jest.mock('bcrypt');
+jest.mock('jsonwebtoken');
+jest.mock('../models/user.model');
 
-describe('loginUser', () => {
-  let req, res, next;
-
+describe('User Controller Tests', () => {
   beforeEach(() => {
-    req = {
+    jest.clearAllMocks();
+  });
+
+  it('should return 401 if email is not found', async () => {
+    User.findOne.mockResolvedValueOnce(null);
+
+    const req = {
       body: {
         email: 'test@example.com',
-        password: 'password123'
-      }
+        password: 'password123',
+      },
     };
-    res = {
-      status: sinon.stub().returnsThis(),
-      json: sinon.stub()
+
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
     };
-    next = sinon.stub();
+
+    const next = jest.fn();
+
+    await loginUser(req, res, next);
+
+    expect(User.findOne).toHaveBeenCalledWith({ email: 'test@example.com' });
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({ message: 'Invalid email or password' });
+    expect(next).not.toHaveBeenCalled();
   });
 
-  afterEach(() => {
-    sinon.restore();
-  });
-
-  it('should return a token if login is successful', async () => {
-    const user = {
-      _id: 'user_id',
+  it('should return 401 if password is invalid', async () => {
+    const mockUser = {
       email: 'test@example.com',
-      password: 'hashed_password'
+      password: 'hashedPassword',
     };
 
-    sinon.stub(User, 'findOne').resolves(user);
-    sinon.stub(bcrypt, 'compare').resolves(true);
-    sinon.stub(jwt, 'sign').returns('token');
+    User.findOne.mockResolvedValueOnce(mockUser);
+    bcrypt.compare.mockResolvedValueOnce(false);
+
+    const req = {
+      body: {
+        email: 'test@example.com',
+        password: 'password123',
+      },
+    };
+
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+    };
+
+    const next = jest.fn();
 
     await loginUser(req, res, next);
 
-    expect(User.findOne).to.have.been.calledWith({ email: 'test@example.com' });
-    expect(bcrypt.compare).to.have.been.calledWith('password123', 'hashed_password');
-    expect(jwt.sign).to.have.been.calledWith({ userId: 'user_id' }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    expect(res.status).to.have.been.calledWith(200);
-    expect(res.json).to.have.been.calledWith({ token: 'token' });
-    expect(next).to.not.have.been.called;
+    expect(User.findOne).toHaveBeenCalledWith({ email: 'test@example.com' });
+    expect(bcrypt.compare).toHaveBeenCalledWith('password123', 'hashedPassword');
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({ message: 'Invalid credentials' });
+    expect(next).not.toHaveBeenCalled();
   });
 
-  it('should return an error if email is invalid', async () => {
-    const error = new Error('Invalid email or password');
-
-    sinon.stub(User, 'findOne').resolves(null);
-
-    await loginUser(req, res, next);
-
-    expect(User.findOne).to.have.been.calledWith({ email: 'test@example.com' });
-    expect(res.status).to.have.been.calledWith(401);
-    expect(res.json).to.have.been.calledWith({ message: 'Invalid email or password' });
-    expect(next).to.not.have.been.called;
-  });
-
-  it('should return an error if password is invalid', async () => {
-    const user = {
-      _id: 'user_id',
+  it('should return 200 with user data and token if login is successful', async () => {
+    const mockUser = {
+      _id: 'user123',
       email: 'test@example.com',
-      password: 'hashed_password'
+      password: 'hashedPassword',
+      role: 'user',
+      isAdmin: false,
+      _doc: {
+        _id: 'user123',
+        email: 'test@example.com',
+        role: 'user',
+        isAdmin: false,
+      },
     };
 
-    sinon.stub(User, 'findOne').resolves(user);
-    sinon.stub(bcrypt, 'compare').resolves(false);
+    User.findOne.mockResolvedValueOnce(mockUser);
+    bcrypt.compare.mockResolvedValueOnce(true);
+    jwt.sign.mockReturnValueOnce('token123');
+
+    const req = {
+      body: {
+        email: 'test@example.com',
+        password: 'password123',
+      },
+    };
+
+    const res = {
+      cookie: jest.fn().mockReturnThis(),
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+    };
+
+    const next = jest.fn();
 
     await loginUser(req, res, next);
 
-    expect(User.findOne).to.have.been.calledWith({ email: 'test@example.com' });
-    expect(bcrypt.compare).to.have.been.calledWith('password123', 'hashed_password');
-    expect(res.status).to.have.been.calledWith(401);
-    expect(res.json).to.have.been.calledWith({ message: 'Invalid credentials' });
-    expect(next).to.not.have.been.called;
+    expect(User.findOne).toHaveBeenCalledWith({ email: 'test@example.com' });
+    expect(bcrypt.compare).toHaveBeenCalledWith('password123', 'hashedPassword');
+    expect(jwt.sign).toHaveBeenCalledWith(
+      { userId: 'user123', role: 'user', isAdmin: false },
+      process.env.JWT_SECRET
+    );
+    expect(res.cookie).toHaveBeenCalledWith('access_token', 'token123', {
+      httpOnly: true,
+      maxAge: expect.any(Number),
+      secure: expect.any(Boolean),
+    });
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      user: {
+        _id: 'user123',
+        email: 'test@example.com',
+        role: 'user',
+        isAdmin: false,
+      },
+      token: 'token123',
+    });
+    expect(next).not.toHaveBeenCalled();
   });
 
-  it('should call the error handler if an error occurs', async () => {
-    const error = new Error('Some error');
+  it('should call next with error if an error occurs', async () => {
+    User.findOne.mockRejectedValueOnce(new Error('Database error'));
 
-    sinon.stub(User, 'findOne').rejects(error);
+    const req = {
+      body: {
+        email: 'test@example.com',
+        password: 'password123',
+      },
+    };
+
+    const res = {
+      status: jest.fn(),
+      json: jest.fn(),
+    };
+
+    const next = jest.fn();
 
     await loginUser(req, res, next);
 
-    expect(User.findOne).to.have.been.calledWith({ email: 'test@example.com' });
-    expect(next).to.have.been.calledWith(error);
-    expect(res.status).to.not.have.been.called;
-    expect(res.json).to.not.have.been.called;
+    expect(User.findOne).toHaveBeenCalledWith({ email: 'test@example.com' });
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
+    expect(next.mock.calls[0][0].message).toBe('Database error');
+    expect(res.status).not.toHaveBeenCalled();
+    expect(res.json).not.toHaveBeenCalled();
   });
+
+  afterAll(async () => {
+    await mongoose.connection.close();
+    server.close();
+  })
 });
