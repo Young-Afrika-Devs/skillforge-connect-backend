@@ -16,6 +16,7 @@ router.post('/reset-password', userController.resetPassword);
 // Admin Routes
 router.post('/setup-admin', userController.setupAdmin); // Setup admin user (first time only
 router.post('/register-admin', requireAdmin, userController.registerAdmin); // Require admin for admin registration
+router.get('/get-users', requireAdmin, userController.getAllUsers); // Require admin for getting all users
 
 // Class Routes
 router.post('/create-class', requireAdmin, classController.createClass); // Require admin for class creation
