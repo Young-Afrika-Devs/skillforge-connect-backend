@@ -13,6 +13,10 @@ router.post('/login', userController.loginUser);
 router.post('/request-password-reset', userController.requestPasswordReset);
 router.post('/reset-password', userController.resetPassword);
 
+// Admin Routes
+router.post('/setup-admin', userController.setupAdmin); // Setup admin user (first time only
+router.post('/register-admin', requireAdmin, userController.registerAdmin); // Require admin for admin registration
+
 // Class Routes
 router.post('/create-class', requireAdmin, classController.createClass); // Require admin for class creation
 router.get('/get-classes', classController.getClasses);

@@ -4,12 +4,42 @@ import Joi from 'joi';
 import User from '../models/user.model.js';
 import { errorHandler } from '../utils/errorHandler.js';
 
-export const registerUser = async (req, res, next) => {
+export const setupAdmin = async (req, res, next) => {
     try {
+        const adminExists = await User.findOne({ role: 'admin' });
+
+        if (adminExists) {
+            return res.status(409).json({ message: 'Admin user already exists' });
+        }
+
+        const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
+
+        const adminUser =  new User({
+            username: process.env.ADMIN_USERNAME,
+            email: process.env.ADMIN_EMAIL,
+            password: hashedPassword,
+            role: 'admin'
+        });
+
+        await adminUser.save();
+
+        // Generate a JWT token for the admin user
+        const token = jwt.sign({ userId: adminUser._id, role: adminUser.role }, process.env.JWT_SECRET)
+
+        // Set the access token as a cookie
+        res.status(201).json({ message: 'Admin user created successfully', token: token });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const registerAdmin = async (req, res, next) => {
+    try {
+        // Authentication and authorization middleware
         const schema = Joi.object({
             username: Joi.string().required(),
             email: Joi.string().email().required(),
-            password: Joi.string().min(8).required()
+            password: Joi.string().min(8).required(),
         });
 
         const { error, value } = schema.validate(req.body);
@@ -22,7 +52,39 @@ export const registerUser = async (req, res, next) => {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const newUser = new User({ username, email, password: hashedPassword });
+        const newAdmin = new User({ username, email, password: hashedPassword, isAdmin: true });
+
+        await newAdmin.save();
+
+        res.status(201).json({ message: 'Admin created successfully' });
+    } catch (error) {
+        if (error.code === 11000) {
+            next(new Error('Admin already exists'));
+        } else {
+            next(error);
+        }
+    }
+};
+
+export const registerUser = async (req, res, next) => {
+    try {
+        const schema = Joi.object({
+            username: Joi.string().required(),
+            email: Joi.string().email().required(),
+            password: Joi.string().min(8).required(),
+        });
+
+        const { error, value } = schema.validate(req.body);
+
+        if (error) {
+            throw new Error(error.details[0].message);
+        }
+
+        const { username, email, password } = value;
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const newUser = new User({ username, email, password: hashedPassword, isAdmin: false });
 
         await newUser.save();
 
