@@ -2,6 +2,8 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import swaggerUI from 'swagger-ui-express';
+import swaggerDocs from './swaggerHelper/documentations.js';
 import { errorHandler } from './utils/errorHandler.js';
 import router from './routes/index.js';
 
@@ -23,6 +25,9 @@ app.use(express.json());
 
 // API Routes
 app.use('/api/user', router);
+
+// Swagger
+app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocs));
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
