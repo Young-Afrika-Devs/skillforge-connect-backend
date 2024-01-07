@@ -3,7 +3,7 @@ import express from 'express';
 import * as userController from '../controllers/user.controller.js';
 import * as classController from '../controllers/class.controller.js';
 import * as eventController from '../controllers/events.controller.js';
-import { requireAdmin } from '../utils/authMiddleware.js'; // Import the requireAdmin middleware
+import { requireAdmin } from '../utils/auth.middleware.js'; // Import the requireAdmin middleware
 
 const router = express.Router();
 
