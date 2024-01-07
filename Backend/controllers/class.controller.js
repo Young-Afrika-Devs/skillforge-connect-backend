@@ -2,6 +2,24 @@
 import Class from '../models/class.model.js';
 import { errorHandler } from '../utils/errorHandler.js';
 import { validationResult } from 'express-validator';
+import { requireAdmin, authenticateUser } from '../utils/auth.middleware.js';
+
+
+
+
+
+// Get classes for a specific user
+export const getUserClasses = async (req, res, next) => {
+  try {
+    const userId = req.user.userId; // Extract user ID from the request
+
+    const userClasses = await Class.find({ enrolledStudents: userId });
+
+    res.status(200).json({ data: userClasses });
+  } catch (error) {
+    errorHandler(error, req, res, next);
+  }
+};
 
 // Create a new class
 export const createClass = async (req, res, next) => {
