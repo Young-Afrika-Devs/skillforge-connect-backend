@@ -1,4 +1,4 @@
-// Backend/models/class.model.js
+
 import mongoose from 'mongoose';
 
 const classSchema = new mongoose.Schema({
@@ -22,11 +22,15 @@ const classSchema = new mongoose.Schema({
   },
   capacity: {
     type: Number,
-    default: 20, // Default capacity, adjust as needed
+    default: 20, 
   },
   enrolledStudents: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // Assuming there's a User model
+    ref: 'User', 
+  }],
+  students: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
   }],
 }, { timestamps: true });
 

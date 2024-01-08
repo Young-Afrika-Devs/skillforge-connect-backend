@@ -3,6 +3,8 @@ import Event from '../models/events.model.js';
 import User from '../models/user.model.js';
 import { errorHandler }  from '../utils/errorHandler.js';
 import Joi from 'joi';
+import { requireAdmin, authenticateUser } from '../utils/auth.middleware.js';
+
 
 export const createEvent = async (req, res, next) => {
     try {
@@ -190,3 +192,17 @@ export const getEventById = async (req, res, next) => {
         next(error);
     }
 }
+
+// Get events for a specific user
+export const getUserEvents = async (req, res, next) => {
+  try {
+    const userId = req.user; 
+
+    const userEvents = await Event.find({ enrolledStudents: userId });
+
+    res.status(200).json({ data: userEvents });
+  } catch (error) {
+    errorHandler(error, req, res, next);
+  }
+};
+
