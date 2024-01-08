@@ -3,8 +3,6 @@ import Event from '../models/events.model.js';
 import User from '../models/user.model.js';
 import { errorHandler }  from '../utils/errorHandler.js';
 import Joi from 'joi';
-import { requireAdmin, authenticateUser } from '../utils/auth.middleware.js';
-
 
 export const createEvent = async (req, res, next) => {
     try {
